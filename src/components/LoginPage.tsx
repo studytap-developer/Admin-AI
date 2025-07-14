@@ -341,8 +341,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [errors, setErrors] = useState<{email?: string; password?: string; auth?: string}>({});
 
   // Hardcoded credentials
-  const VALID_EMAIL = 'testing@gmail.com';
-  const VALID_PASSWORD = '123456';
+  const VALID_EMAIL = 'studytap21@gmail.com';
+  const VALID_PASSWORD = 'Ai@tapKVMG';
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string; auth?: string} = {};

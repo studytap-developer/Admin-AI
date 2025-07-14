@@ -1,831 +1,6 @@
 
-
-///// all are working except search , apis
-
-// import React, { useState, useEffect, useMemo } from 'react';
-// import { Search, BookCopy, ArrowLeft, Plus, Trash2, ChevronRight, FileText, Folder, BrainCircuit, UploadCloud, X } from 'lucide-react';
-
-// // --- TYPE DEFINITIONS ---
-// export interface University {
-//   id: string;
-//   name: string;
-//   code: string;
-//   totalSubjects: number;
-//   totalQuestions: number;
-// }
-
-// export interface Branch {
-//   id: string;
-//   name: string;
-//   code: string;
-//   universityId: string;
-//   totalSubjects: number;
-// }
-
-// export interface Subject {
-//   id: string;
-//   name: string;
-//   code: string;
-//   branchId: string;
-//   totalPdfs: number;
-// }
-
-// interface PdfFile {
-//   id: string;
-//   name: string;
-//   size: string;
-//   date: string;
-//   status: 'Uploading' | 'Processing' | 'Processed';
-//   url: string;
-//   fileData: string; // Base64 encoded file data for persistence
-// }
-
-// // --- BREADCRUMB COMPONENT ---
-// const Breadcrumb: React.FC<{ items: { name: string, onClick?: () => void }[] }> = ({ items }) => (
-//   <nav className="flex items-center text-sm text-gray-500 mb-4">
-//     {items.map((item, index) => (
-//       <React.Fragment key={item.name}>
-//         {index > 0 && <ChevronRight className="h-4 w-4 mx-1" />}
-//         {item.onClick ? (<button onClick={item.onClick} className="hover:text-gray-800 hover:underline">{item.name}</button>) : (<span className="font-medium text-gray-700">{item.name}</span>)}
-//       </React.Fragment>
-//     ))}
-//   </nav>
-// );
-
-// // --- ENHANCED SEARCH COMPONENT ---
-// const SearchInput: React.FC<{ 
-//   value: string; 
-//   onChange: (value: string) => void; 
-//   placeholder: string;
-//   className?: string;
-//   centered?: boolean;
-// }> = ({ value, onChange, placeholder, className = "", centered = false }) => (
-//   <div className={`relative ${className} ${centered ? 'flex justify-center' : ''}`}>
-//     <div className={`relative ${centered ? 'w-full max-w-2xl' : 'w-full'}`}>
-//       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-//         <Search className="h-5 w-5 text-gray-400" />
-//       </div>
-//       <input
-//         type="text"
-//         value={value}
-//         onChange={(e) => onChange(e.target.value)}
-//         className={`block w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200 ${centered ? 'text-center text-lg' : ''}`}
-//         placeholder={placeholder}
-//       />
-//       {value && (
-//         <button
-//           onClick={() => onChange('')}
-//           className="absolute inset-y-0 right-0 pr-4 flex items-center hover:bg-gray-50 rounded-r-xl transition-colors"
-//         >
-//           <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-//         </button>
-//       )}
-//     </div>
-//   </div>
-// );
-
-// // --- MAIN SYLLABUS COMPONENT ---
-// export const SyllabusSection: React.FC = () => {
-//   // --- STATE MANAGEMENT ---
-//   const [universities, setUniversities] = useState<University[]>(() => {
-//     const saved = localStorage.getItem('universities');
-//     return saved ? JSON.parse(saved) : [
-//       { id: 'ou', name: 'Osmania University', code: 'OU', totalSubjects: 6, totalQuestions: 5240 },
-//       { id: 'jntuh', name: 'Jawaharlal Nehru Technological University Hyderabad', code: 'JNTUH', totalSubjects: 0, totalQuestions: 6180 },
-//     ];
-//   });
-
-//   const [branches, setBranches] = useState<Branch[]>(() => {
-//     const saved = localStorage.getItem('branches');
-//     return saved ? JSON.parse(saved) : [
-//       { id: 'ou-cse', name: 'Computer Science Engineering', code: 'CSE', universityId: 'ou', totalSubjects: 6 },
-//       { id: 'ou-it', name: 'Information Technology', code: 'IT', universityId: 'ou', totalSubjects: 0 },
-//     ];
-//   });
-
-//   const [subjects, setSubjects] = useState<Subject[]>(() => {
-//     const saved = localStorage.getItem('subjects');
-//     return saved ? JSON.parse(saved) : [
-//       { id: 'ou-cse-ds', name: 'Data Structures', code: 'DS', branchId: 'ou-cse', totalPdfs: 0 },
-//       { id: 'ou-cse-algo', name: 'Algorithms', code: 'ALGO', branchId: 'ou-cse', totalPdfs: 0 },
-//       { id: 'ou-cse-os', name: 'Operating Systems', code: 'OS', branchId: 'ou-cse', totalPdfs: 0 },
-//     ];
-//   });
-  
-//   // PDFs now persist with base64 encoding
-//   const [pdfs, setPdfs] = useState<{ [subjectId: string]: PdfFile[] }>(() => {
-//     const saved = localStorage.getItem('pdfs');
-//     return saved ? JSON.parse(saved) : {};
-//   });
-
-//   const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
-//   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-//   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-
-//   const [showAddUniversity, setShowAddUniversity] = useState(false);
-//   const [showAddBranch, setShowAddBranch] = useState(false);
-//   const [showAddSubject, setShowAddSubject] = useState(false);
-//   const [name, setName] = useState('');
-//   const [code, setCode] = useState('');
-
-//   // --- SEARCH STATE ---
-//   const [searchQuery, setSearchQuery] = useState('');
-
-//   // --- SAVE TO LOCALSTORAGE ---
-//   useEffect(() => {
-//     localStorage.setItem('universities', JSON.stringify(universities));
-//   }, [universities]);
-
-//   useEffect(() => {
-//     localStorage.setItem('branches', JSON.stringify(branches));
-//   }, [branches]);
-
-//   useEffect(() => {
-//     localStorage.setItem('subjects', JSON.stringify(subjects));
-//   }, [subjects]);
-
-//   useEffect(() => {
-//     localStorage.setItem('pdfs', JSON.stringify(pdfs));
-//   }, [pdfs]);
-
-//   // --- SEARCH LOGIC ---
-//   const filteredUniversities = useMemo(() => {
-//     if (!searchQuery.trim()) return universities;
-//     const query = searchQuery.toLowerCase();
-//     return universities.filter(u => 
-//       u.name.toLowerCase().includes(query) || 
-//       u.code.toLowerCase().includes(query)
-//     );
-//   }, [universities, searchQuery]);
-
-//   const filteredBranches = useMemo(() => {
-//     if (!selectedUniversity) return [];
-//     const universityBranches = branches.filter(b => b.universityId === selectedUniversity.id);
-//     if (!searchQuery.trim()) return universityBranches;
-//     const query = searchQuery.toLowerCase();
-//     return universityBranches.filter(b => 
-//       b.name.toLowerCase().includes(query) || 
-//       b.code.toLowerCase().includes(query)
-//     );
-//   }, [branches, selectedUniversity, searchQuery]);
-
-//   const filteredSubjects = useMemo(() => {
-//     if (!selectedBranch) return [];
-//     const branchSubjects = subjects.filter(s => s.branchId === selectedBranch.id);
-//     if (!searchQuery.trim()) return branchSubjects;
-//     const query = searchQuery.toLowerCase();
-//     return branchSubjects.filter(s => 
-//       s.name.toLowerCase().includes(query) || 
-//       s.code.toLowerCase().includes(query)
-//     );
-//   }, [subjects, selectedBranch, searchQuery]);
-
-//   const filteredPdfs = useMemo(() => {
-//     if (!selectedSubject) return [];
-//     const subjectPdfs = pdfs[selectedSubject.id] || [];
-//     if (!searchQuery.trim()) return subjectPdfs;
-//     const query = searchQuery.toLowerCase();
-//     return subjectPdfs.filter(pdf => 
-//       pdf.name.toLowerCase().includes(query)
-//     );
-//   }, [pdfs, selectedSubject, searchQuery]);
-
-//   // --- DELETE HANDLERS ---
-//   const handleDeleteUniversity = (universityId: string) => {
-//     if (!window.confirm('Are you sure? This will delete the university and all its branches, subjects, and PDFs.')) return;
-//     setUniversities(prev => prev.filter(u => u.id !== universityId));
-//     setBranches(prev => prev.filter(b => b.universityId !== universityId));
-//     setSubjects(prev => prev.filter(s => !branches.find(b => b.id === s.branchId && b.universityId === universityId)));
-//     // Clean up PDFs for deleted subjects
-//     setPdfs(prev => {
-//       const newPdfs = { ...prev };
-//       Object.keys(newPdfs).forEach(subjectId => {
-//         const subject = subjects.find(s => s.id === subjectId);
-//         if (subject && branches.find(b => b.id === subject.branchId && b.universityId === universityId)) {
-//           newPdfs[subjectId].forEach(pdf => URL.revokeObjectURL(pdf.url));
-//           delete newPdfs[subjectId];
-//         }
-//       });
-//       return newPdfs;
-//     });
-//   };
-
-//   const handleDeleteBranch = (branchId: string) => {
-//     if (!window.confirm('Are you sure? This will delete the branch and all its subjects and PDFs.')) return;
-//     setBranches(prev => prev.filter(b => b.id !== branchId));
-//     setSubjects(prev => prev.filter(s => s.branchId !== branchId));
-//     // Clean up PDFs for deleted subjects
-//     setPdfs(prev => {
-//       const newPdfs = { ...prev };
-//       Object.keys(newPdfs).forEach(subjectId => {
-//         const subject = subjects.find(s => s.id === subjectId && s.branchId === branchId);
-//         if (subject) {
-//           newPdfs[subjectId].forEach(pdf => URL.revokeObjectURL(pdf.url));
-//           delete newPdfs[subjectId];
-//         }
-//       });
-//       return newPdfs;
-//     });
-//   };
-
-//   const handleDeleteSubject = (subjectId: string) => {
-//     if (!window.confirm('Are you sure? This will delete the subject and all its PDFs.')) return;
-//     setSubjects(prev => prev.filter(s => s.id !== subjectId));
-//     setPdfs(prev => {
-//       const newPdfs = { ...prev };
-//       if (newPdfs[subjectId]) {
-//         newPdfs[subjectId].forEach(pdf => URL.revokeObjectURL(pdf.url));
-//         delete newPdfs[subjectId];
-//       }
-//       return newPdfs;
-//     });
-//   };
-
-//   const handleDeletePdf = (subjectId: string, pdfId: string) => {
-//     setPdfs(prev => {
-//       const subjectPdfs = prev[subjectId] || [];
-//       const pdfToDelete = subjectPdfs.find(p => p.id === pdfId);
-//       if (pdfToDelete) URL.revokeObjectURL(pdfToDelete.url);
-//       return { ...prev, [subjectId]: subjectPdfs.filter(p => p.id !== pdfId) };
-//     });
-//   };
-
-//   // --- ADD & UPLOAD HANDLERS ---
-//   const handleAddUniversity = () => {
-//     if (!name.trim() || !code.trim()) return;
-//     setUniversities(prev => [...prev, { id: `uni-${Date.now()}`, name, code: code.toUpperCase(), totalSubjects: 0, totalQuestions: 0 }]);
-//     setName(''); setCode(''); setShowAddUniversity(false);
-//   };
-  
-//   const handleAddBranch = () => {
-//     if (!name.trim() || !code.trim() || !selectedUniversity) return;
-//     setBranches(prev => [...prev, { id: `branch-${Date.now()}`, name, code: code.toUpperCase(), universityId: selectedUniversity.id, totalSubjects: 0 }]);
-//     setName(''); setCode(''); setShowAddBranch(false);
-//   };
-
-//   const handleAddSubject = () => {
-//     if (!name.trim() || !code.trim() || !selectedBranch) return;
-//     setSubjects(prev => [...prev, { id: `subject-${Date.now()}`, name, code: code.toUpperCase(), branchId: selectedBranch.id, totalPdfs: 0 }]);
-//     setName(''); setCode(''); setShowAddSubject(false);
-//   };
-
-//   // Helper function to convert file to base64
-//   const fileToBase64 = (file: File): Promise<string> => {
-//     return new Promise((resolve, reject) => {
-//       const reader = new FileReader();
-//       reader.readAsDataURL(file);
-//       reader.onload = () => resolve(reader.result as string);
-//       reader.onerror = error => reject(error);
-//     });
-//   };
-
-//   // Helper function to create blob URL from base64
-//   const base64ToBlob = (base64: string): string => {
-//     const byteCharacters = atob(base64.split(',')[1]);
-//     const byteNumbers = new Array(byteCharacters.length);
-//     for (let i = 0; i < byteCharacters.length; i++) {
-//       byteNumbers[i] = byteCharacters.charCodeAt(i);
-//     }
-//     const byteArray = new Uint8Array(byteNumbers);
-//     const blob = new Blob([byteArray], { type: 'application/pdf' });
-//     return URL.createObjectURL(blob);
-//   };
-
-//   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-//     if (!event.target.files || !selectedSubject) return;
-    
-//     const files = Array.from(event.target.files);
-//     const newFiles: PdfFile[] = [];
-
-//     for (const file of files) {
-//       try {
-//         const base64Data = await fileToBase64(file);
-//         const blobUrl = base64ToBlob(base64Data);
-        
-//         newFiles.push({
-//           id: `${file.name}-${Date.now()}`,
-//           name: file.name,
-//           size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-//           date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-//           status: 'Uploading',
-//           url: blobUrl,
-//           fileData: base64Data
-//         });
-//       } catch (error) {
-//         console.error('Error converting file to base64:', error);
-//       }
-//     }
-
-//     setPdfs(prev => ({ ...prev, [selectedSubject.id]: [...(prev[selectedSubject.id] || []), ...newFiles] }));
-    
-//     // Simulate upload and processing
-//     newFiles.forEach(pdf => {
-//       setTimeout(() => {
-//         setPdfs(prev => {
-//           if (!prev[selectedSubject.id]) return prev;
-//           return { ...prev, [selectedSubject.id]: prev[selectedSubject.id].map(p => p.id === pdf.id ? { ...p, status: 'Processing' } : p) };
-//         });
-//         setTimeout(() => {
-//           setPdfs(prev => {
-//             if (!prev[selectedSubject.id]) return prev;
-//             return { ...prev, [selectedSubject.id]: prev[selectedSubject.id].map(p => p.id === pdf.id ? { ...p, status: 'Processed' } : p) };
-//           });
-//         }, 3000);
-//       }, 2000);
-//     });
-//   };
-
-//   // --- HELPER & EFFECT HOOKS ---
-//   const getBreadcrumbItems = () => {
-//     const items: { name: string, onClick?: () => void }[] = [
-//       { name: 'Syllabus Management', onClick: () => { setSelectedUniversity(null); setSelectedBranch(null); setSelectedSubject(null); setSearchQuery(''); } }
-//     ];
-//     if (selectedUniversity) {
-//       items.push({ name: selectedUniversity.name, onClick: () => { setSelectedBranch(null); setSelectedSubject(null); setSearchQuery(''); } });
-//     }
-//     if (selectedBranch) {
-//       items.push({ name: selectedBranch.name, onClick: () => { setSelectedSubject(null); setSearchQuery(''); } });
-//     }
-//     if (selectedSubject) {
-//       items.push({ name: 'Upload PDF Documents' });
-//     }
-//     return items;
-//   };
-
-//   // Clear search when navigating
-//   const handleNavigation = (callback: () => void) => {
-//     setSearchQuery('');
-//     callback();
-//   };
-
-//   // Restore blob URLs from base64 data on component mount
-//   useEffect(() => {
-//     const restoredPdfs = { ...pdfs };
-//     Object.keys(restoredPdfs).forEach(subjectId => {
-//       restoredPdfs[subjectId] = restoredPdfs[subjectId].map(pdf => ({
-//         ...pdf,
-//         url: pdf.fileData ? base64ToBlob(pdf.fileData) : pdf.url
-//       }));
-//     });
-//     setPdfs(restoredPdfs);
-//   }, []);
-  
-//   useEffect(() => { 
-//     return () => { 
-//       Object.values(pdfs).flat().forEach(pdf => URL.revokeObjectURL(pdf.url)); 
-//     }; 
-//   }, [pdfs]);
-
-//   // --- RENDER FUNCTIONS ---
-//   const renderUniversitySelector = () => (
-//     <div>
-//       <div className="text-center mb-8">
-//         <h1 className="text-3xl font-bold text-gray-800 mb-2">Syllabus Management</h1>
-//         <p className="text-gray-600 mb-8">Select a university to manage branches, subjects, and PDF documents</p>
-        
-//         {/* Centered Search Bar */}
-//         <div className="mb-8">
-//           <SearchInput
-//             value={searchQuery}
-//             onChange={setSearchQuery}
-//             placeholder="Search universities by name or code..."
-//             className="mb-4"
-//             centered={true}
-//           />
-//           {searchQuery && (
-//             <div className="text-sm text-gray-600">
-//               Found {filteredUniversities.length} university(ies) matching "{searchQuery}"
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       <div className="flex justify-end mb-6">
-//         <button onClick={() => { setName(''); setCode(''); setShowAddUniversity(true); }} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm">
-//           <Plus size={16} /> Add University
-//         </button>
-//       </div>
-
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {filteredUniversities.map(u => {
-//           const u_branches = branches.filter(b => b.universityId === u.id);
-//           return (
-//             <div key={u.id} className="relative bg-white p-6 rounded-xl border border-gray-200 shadow-sm group hover:shadow-md transition-shadow">
-//               <button onClick={(e) => { e.stopPropagation(); handleDeleteUniversity(u.id); }} className="absolute top-3 right-3 p-1.5 text-gray-400 bg-gray-100 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 transition-all"><X size={14} /></button>
-//               <div onClick={() => handleNavigation(() => setSelectedUniversity(u))} className="cursor-pointer">
-//                 <div className="flex flex-col items-center text-center"><div className="bg-blue-100 text-blue-700 text-3xl font-bold h-24 w-24 flex items-center justify-center rounded-2xl mb-4">{u.code}</div><h3 className="text-lg font-semibold text-gray-900 leading-tight h-10">{u.name}</h3></div>
-//                 <hr className="my-5 border-gray-200" />
-//                 <div className="flex justify-around w-full text-center">
-//                   <div><p className="text-xl font-bold text-gray-800">{u_branches.length}</p><p className="text-xs text-gray-500">Branches</p></div>
-//                   <div><p className="text-xl font-bold text-gray-800">{u.totalSubjects}</p><p className="text-xs text-gray-500">Subjects</p></div>
-//                   <div><p className="text-xl font-bold text-gray-800">{u.totalQuestions.toLocaleString()}</p><p className="text-xs text-gray-500">Questions</p></div>
-//                 </div>
-//               </div>
-//             </div>
-//           );
-//         })}
-//       </div>
-
-//       {filteredUniversities.length === 0 && searchQuery && (
-//         <div className="text-center py-16">
-//           <div className="text-gray-400 mb-4">
-//             <Search size={64} className="mx-auto" />
-//           </div>
-//           <h3 className="text-xl font-medium text-gray-900 mb-2">No universities found</h3>
-//           <p className="text-gray-600 mb-6">Try adjusting your search terms or add a new university.</p>
-//           <button onClick={() => { setName(''); setCode(''); setShowAddUniversity(true); }} className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-//             <Plus size={16} /> Add New University
-//           </button>
-//         </div>
-//       )}
-//     </div>
-//   );
-
-//   const renderBranchSelector = () => {
-//     const universityBranches = branches.filter(b => b.universityId === selectedUniversity?.id);
-//     const universitySubjects = subjects.filter(s => universityBranches.find(b => b.id === s.branchId));
-//     const totalPdfs = universitySubjects.reduce((acc, subject) => acc + (pdfs[subject.id] || []).length, 0);
-    
-//     return (
-//       <div>
-//         <Breadcrumb items={getBreadcrumbItems()} />
-//         <div className="flex justify-between items-start mb-6">
-//           <div>
-//             <h1 className="text-2xl font-bold text-gray-800">{selectedUniversity?.name}</h1>
-//             <p className="mt-1 text-gray-600">Manage branches and their subjects</p>
-//           </div>
-//           <div className="flex items-center gap-2">
-//             <button onClick={() => handleNavigation(() => { setSelectedUniversity(null); setSelectedBranch(null); setSelectedSubject(null); })} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-//               <ArrowLeft size={16} /> Back
-//             </button>
-//             <button onClick={() => { setName(''); setCode(''); setShowAddBranch(true); }} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-//               <Plus size={16} /> Add Branch
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Centered Search Input */}
-//         <div className="mb-8">
-//           <SearchInput
-//             value={searchQuery}
-//             onChange={setSearchQuery}
-//             placeholder="Search branches by name or code..."
-//             className="mb-4"
-//             centered={true}
-//           />
-//           {searchQuery && (
-//             <div className="text-center text-sm text-gray-600">
-//               Found {filteredBranches.length} branch(es) matching "{searchQuery}"
-//             </div>
-//           )}
-//         </div>
-
-//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-purple-100"><Folder size={24} className="text-purple-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">{universityBranches.length}</p><p className="text-sm text-gray-500">Total Branches</p></div>
-//           </div>
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-indigo-100"><BookCopy size={24} className="text-indigo-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">{universitySubjects.length}</p><p className="text-sm text-gray-500">Total Subjects</p></div>
-//           </div>
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-green-100"><BrainCircuit size={24} className="text-green-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">{selectedUniversity?.totalQuestions.toLocaleString()}</p><p className="text-sm text-gray-500">Total Questions</p></div>
-//           </div>
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-orange-100"><FileText size={24} className="text-orange-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">{totalPdfs}</p><p className="text-sm text-gray-500">Total PDFs</p></div>
-//           </div>
-//         </div>
-
-//         <div className="bg-white rounded-xl border border-gray-200">
-//           <div className="p-5 border-b border-gray-200">
-//             <h3 className="text-lg font-semibold text-gray-800">Branches ({filteredBranches.length})</h3>
-//           </div>
-//           <div className="divide-y divide-gray-200">
-//             {filteredBranches.map(branch => {
-//               const branchSubjects = subjects.filter(s => s.branchId === branch.id);
-//               const branchPdfs = branchSubjects.reduce((acc, subject) => acc + (pdfs[subject.id] || []).length, 0);
-//               return (
-//                 <div key={branch.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-//                   <div className="flex items-center gap-4">
-//                     <div className="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-md text-sm">{branch.code}</div>
-//                     <div>
-//                       <p className="font-semibold text-gray-800">{branch.name}</p>
-//                       <p className="text-sm text-gray-500">{branchSubjects.length} subjects • {branchPdfs} PDFs</p>
-//                     </div>
-//                   </div>
-//                   <div className="flex items-center gap-4">
-//                     <button onClick={() => handleNavigation(() => setSelectedBranch(branch))} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
-//                       View Subjects
-//                     </button>
-//                     <button onClick={() => handleDeleteBranch(branch.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md">
-//                       <Trash2 size={18} />
-//                     </button>
-//                   </div>
-//                 </div>
-//               );
-//             })}
-//           </div>
-
-//           {filteredBranches.length === 0 && searchQuery && (
-//             <div className="text-center py-12">
-//               <div className="text-gray-400 mb-4">
-//                 <Search size={48} className="mx-auto" />
-//               </div>
-//               <h3 className="text-lg font-medium text-gray-900 mb-2">No branches found</h3>
-//               <p className="text-gray-600 mb-4">Try adjusting your search terms or add a new branch.</p>
-//               <button onClick={() => { setName(''); setCode(''); setShowAddBranch(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-//                 <Plus size={16} /> Add New Branch
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   const renderSubjectSelector = () => {
-//     if (!selectedBranch) return null;
-//     const branchSubjects = subjects.filter(s => s.branchId === selectedBranch.id);
-//     const totalPdfs = branchSubjects.reduce((acc, subject) => acc + (pdfs[subject.id] || []).length, 0);
-    
-//     return (
-//       <div>
-//         <Breadcrumb items={getBreadcrumbItems()} />
-//         <div className="flex justify-between items-start mb-6">
-//           <div>
-//             <h1 className="text-2xl font-bold text-gray-800">{selectedBranch.name}</h1>
-//             <p className="mt-1 text-gray-600">Manage subjects and their PDF documents</p>
-//           </div>
-//           <div className="flex items-center gap-2">
-//             <button onClick={() => handleNavigation(() => { setSelectedBranch(null); setSelectedSubject(null); })} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-//               <ArrowLeft size={16} /> Back
-//             </button>
-//             <button onClick={() => { setName(''); setCode(''); setShowAddSubject(true); }} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
-//               <Plus size={16} /> Add Subject
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Centered Search Input */}
-//         <div className="mb-8">
-//           <SearchInput
-//             value={searchQuery}
-//             onChange={setSearchQuery}
-//             placeholder="Search subjects by name or code..."
-//             className="mb-4"
-//             centered={true}
-//           />
-//           {searchQuery && (
-//             <div className="text-center text-sm text-gray-600">
-//               Found {filteredSubjects.length} subject(s) matching "{searchQuery}"
-//             </div>
-//           )}
-//         </div>
-
-//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-indigo-100"><BookCopy size={24} className="text-indigo-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">{branchSubjects.length}</p><p className="text-sm text-gray-500">Total Subjects</p></div>
-//           </div>
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-orange-100"><FileText size={24} className="text-orange-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">{totalPdfs}</p><p className="text-sm text-gray-500">Total PDFs</p></div>
-//           </div>
-//           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
-//             <div className="p-3 rounded-lg bg-green-100"><BrainCircuit size={24} className="text-green-600" /></div>
-//             <div><p className="text-2xl font-bold text-gray-800">0</p><p className="text-sm text-gray-500">Total Questions</p></div>
-//           </div>
-//         </div>
-
-//         <div className="bg-white rounded-xl border border-gray-200">
-//           <div className="p-5 border-b border-gray-200">
-//             <h3 className="text-lg font-semibold text-gray-800">Subjects ({filteredSubjects.length})</h3>
-//           </div>
-//           <div className="divide-y divide-gray-200">
-//             {filteredSubjects.length > 0 ? filteredSubjects.map(subject => {
-//               const subjectPdfs = pdfs[subject.id] || [];
-//               return (
-//                 <div key={subject.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-//                   <div className="flex items-center gap-4">
-//                     <div className="bg-purple-100 text-purple-800 font-bold px-3 py-1 rounded-md text-sm">{subject.code}</div>
-//                     <div>
-//                       <p className="font-semibold text-gray-800">{subject.name}</p>
-//                       <p className="text-sm text-gray-500">{subjectPdfs.length} PDFs uploaded</p>
-//                     </div>
-//                   </div>
-//                   <div className="flex items-center gap-4">
-//                     <button onClick={() => handleNavigation(() => setSelectedSubject(subject))} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100">
-//                       Upload PDFs
-//                     </button>
-//                     <button onClick={() => handleDeleteSubject(subject.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md">
-//                       <Trash2 size={18} />
-//                     </button>
-//                   </div>
-//                 </div>
-//               );
-//             }) : (
-//               <div className="text-center py-12">
-//                 {searchQuery ? (
-//                   <>
-//                     <div className="text-gray-400 mb-4">
-//                       <Search size={48} className="mx-auto" />
-//                     </div>
-//                     <h3 className="text-lg font-medium text-gray-900 mb-2">No subjects found</h3>
-//                     <p className="text-gray-600 mb-4">Try adjusting your search terms or add a new subject.</p>
-//                     <button onClick={() => { setName(''); setCode(''); setShowAddSubject(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
-//                       <Plus size={16} /> Add New Subject
-//                     </button>
-//                   </>
-//                 ) : (
-//                   <p className="text-gray-500">No subjects added for this branch yet.</p>
-//                 )}
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   const renderPdfUploader = () => {
-//     if (!selectedSubject) return null;
-//     const subjectPdfs = pdfs[selectedSubject.id] || [];
-//     const StatusTag: React.FC<{ status: PdfFile['status'] }> = ({ status }) => { 
-//       const styles = { 
-//         Uploading: 'bg-blue-100 text-blue-800', 
-//         Processing: 'bg-yellow-100 text-yellow-800', 
-//         Processed: 'bg-green-100 text-green-800' 
-//       }; 
-//       return <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${styles[status]}`}>{status}</span>; 
-//     };
-    
-//     return (
-//       <div>
-//         <Breadcrumb items={getBreadcrumbItems()} />
-//         <div className="flex justify-between items-start mb-6">
-//           <div>
-//             <h1 className="text-2xl font-bold text-gray-800">Upload PDF Documents</h1>
-//             <p className="mt-1 text-gray-600">Subject: {selectedSubject.name} ({selectedSubject.code})</p>
-//           </div>
-//           <button onClick={() => handleNavigation(() => setSelectedSubject(null))} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-//             <ArrowLeft size={16} /> Back to Subjects
-//           </button>
-//         </div>
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-//           <div className="lg:col-span-2 space-y-6">
-//             <div className="bg-white p-4 rounded-xl border border-gray-200">
-//               <label htmlFor="file-upload" className="cursor-pointer relative border-2 border-dashed border-gray-300 rounded-lg p-10 flex flex-col items-center justify-center text-center hover:border-blue-500 transition-colors">
-//                 <div className="bg-slate-100 p-4 rounded-full mb-4">
-//                   <UploadCloud size={32} className="text-slate-500" />
-//                 </div>
-//                 <p className="font-semibold text-gray-700 mb-1">Drop PDF files here</p>
-//                 <p className="text-sm text-gray-500 mb-4">or click to browse</p>
-//                 <span className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Choose Files</span>
-//                 <input id="file-upload" type="file" multiple accept=".pdf" className="hidden" onChange={handleFileChange} />
-//               </label>
-//             </div>
-
-//             {/* Search Input for PDFs */}
-//             <div className="bg-white p-4 rounded-xl border border-gray-200">
-//               <SearchInput
-//                 value={searchQuery}
-//                 onChange={setSearchQuery}
-//                 placeholder="Search PDF documents by filename..."
-//                 className="w-full"
-//               />
-//             </div>
-
-//             <div className="bg-white rounded-xl border border-gray-200">
-//               <div className="p-5 border-b border-gray-200">
-//                 <h3 className="text-lg font-semibold text-gray-800">Uploaded Documents ({filteredPdfs.length})</h3>
-//                 {searchQuery && (
-//                   <p className="text-sm text-gray-600 mt-1">
-//                     Showing {filteredPdfs.length} of {subjectPdfs.length} documents
-//                   </p>
-//                 )}
-//               </div>
-//               <div className="divide-y divide-gray-200">
-//                 {filteredPdfs.length > 0 ? filteredPdfs.map(file => (
-//                   <div key={file.id} className="p-4 flex items-center gap-4">
-//                     <FileText className="h-7 w-7 text-red-500 flex-shrink-0" />
-//                     <div className="flex-grow min-w-0">
-//                       <p className="font-medium text-sm text-gray-800 truncate" title={file.name}>{file.name}</p>
-//                       <p className="text-xs text-gray-500">{file.size} • {file.date}</p>
-//                     </div>
-//                     <div className="flex items-center gap-4 flex-shrink-0">
-//                       <StatusTag status={file.status} />
-//                       {file.status === 'Processed' && (
-//                         <a href={file.url} download={file.name} className="text-sm font-medium text-blue-600 hover:underline">
-//                           Download
-//                         </a>
-//                       )}
-//                       <button onClick={() => handleDeletePdf(selectedSubject.id, file.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md">
-//                         <Trash2 size={16} />
-//                       </button>
-//                     </div>
-//                   </div>
-//                 )) : (
-//                   <div className="text-center py-12">
-//                     {searchQuery ? (
-//                       <>
-//                         <div className="text-gray-400 mb-4">
-//                           <Search size={48} className="mx-auto" />
-//                         </div>
-//                         <h3 className="text-lg font-medium text-gray-900 mb-2">No PDF documents found</h3>
-//                         <p className="text-gray-600">Try adjusting your search terms.</p>
-//                       </>
-//                     ) : (
-//                       <p className="text-gray-500">No documents uploaded for this subject yet.</p>
-//                     )}
-//                   </div>
-//                 )}
-//               </div>
-//             </div>
-//           </div>
-//           <div className="lg:col-span-1">
-//             <div className="bg-white p-6 rounded-xl border border-gray-200 sticky top-6">
-//               <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload Guidelines</h3>
-//               <ul className="list-disc list-inside text-gray-600 space-y-2.5 text-sm marker:text-gray-400">
-//                 <li>Maximum file size: <strong>50MB per PDF</strong></li>
-//                 <li>Supported format: <strong>PDF only</strong></li>
-//                 <li>Multiple files can be uploaded</li>
-//                 <li>Files will be processed automatically</li>
-//                 <li>Files are saved permanently and will persist after page refresh</li>
-//               </ul>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="p-6 bg-gray-50 min-h-screen">
-//       {!selectedUniversity ? renderUniversitySelector() : 
-//        !selectedBranch ? renderBranchSelector() : 
-//        !selectedSubject ? renderSubjectSelector() : 
-//        renderPdfUploader()}
-
-//       {showAddUniversity && (
-//         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-//           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
-//             <h3 className="text-lg font-semibold mb-4">Add New University</h3>
-//             <input type="text" placeholder="University Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-2 mb-3 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-//             <input type="text" placeholder="University Code (e.g., JNTUK)" value={code} onChange={(e) => setCode(e.target.value)} className="w-full border px-3 py-2 mb-4 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-//             <div className="flex justify-end gap-3">
-//               <button onClick={() => setShowAddUniversity(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-//               <button onClick={handleAddUniversity} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Add University</button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {showAddBranch && (
-//         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-//           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
-//             <h3 className="text-lg font-semibold mb-4">Add New Branch</h3>
-//             <input type="text" placeholder="Branch Name (e.g., Mechanical Engineering)" value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-2 mb-3 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-//             <input type="text" placeholder="Branch Code (e.g., MECH)" value={code} onChange={(e) => setCode(e.target.value)} className="w-full border px-3 py-2 mb-4 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-//             <div className="flex justify-end gap-3">
-//               <button onClick={() => setShowAddBranch(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-//               <button onClick={handleAddBranch} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">Add Branch</button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {showAddSubject && (
-//         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-//           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
-//             <h3 className="text-lg font-semibold mb-4">Add New Subject</h3>
-//             <input type="text" placeholder="Subject Name (e.g., Data Structures)" value={name} onChange={(e) => setName(e.target.value)} className="w-full border px-3 py-2 mb-3 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-//             <input type="text" placeholder="Subject Code (e.g., DS)" value={code} onChange={(e) => setCode(e.target.value)} className="w-full border px-3 py-2 mb-4 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-//             <div className="flex justify-end gap-3">
-//               <button onClick={() => setShowAddSubject(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-//               <button onClick={handleAddSubject} className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">Add Subject</button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default function App() {
-//   return <SyllabusSection />;
-// }
-
-
-
-
-// functionalities working , search popup is working. 
-
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, BookCopy, ArrowLeft, Plus, Trash2, ChevronRight, FileText, Folder, BrainCircuit, UploadCloud, X, AlertTriangle } from 'lucide-react';
+import { Search, BookCopy, ArrowLeft, Plus, Trash2, ChevronRight, FileText, Folder, BrainCircuit, UploadCloud, X, AlertTriangle, RefreshCw } from 'lucide-react';
 
 // --- TYPE DEFINITIONS ---
 export interface University {
@@ -833,7 +8,7 @@ export interface University {
   name: string;
   code: string;
   totalSubjects: number;
-  totalQuestions: number;
+  // totalQuestions: number;
 }
 
 export interface Branch {
@@ -857,9 +32,11 @@ interface PdfFile {
   name: string;
   size: string;
   date: string;
-  status: 'Uploading' | 'Processing' | 'Processed';
+  status: 'Uploading' | 'Processing' | 'Processed' | 'Failed';
   url: string;
   fileData: string; // Base64 encoded file data for persistence
+  errorMessage?: string; // For storing API error messages
+  apiId?: string; // ID returned from API
 }
 
 interface ConfirmationModalProps {
@@ -877,7 +54,7 @@ interface ConfirmationModalProps {
 const Breadcrumb: React.FC<{ items: { name: string, onClick?: () => void }[] }> = ({ items }) => (
   <nav className="flex items-center text-sm text-gray-500 mb-4">
     {items.map((item, index) => (
-      <React.Fragment key={item.name}>
+      <React.Fragment key={`${item.name}-${index}`}>
         {index > 0 && <ChevronRight className="h-4 w-4 mx-1" />}
         {item.onClick ? (<button onClick={item.onClick} className="hover:text-gray-800 hover:underline">{item.name}</button>) : (<span className="font-medium text-gray-700">{item.name}</span>)}
       </React.Fragment>
@@ -1000,34 +177,67 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 export const SyllabusSection: React.FC = () => {
   // --- STATE MANAGEMENT ---
   const [universities, setUniversities] = useState<University[]>(() => {
-    const saved = localStorage.getItem('universities');
-    return saved ? JSON.parse(saved) : [
-      { id: 'ou', name: 'Osmania University', code: 'OU', totalSubjects: 6, totalQuestions: 5240 },
-      { id: 'jntuh', name: 'Jawaharlal Nehru Technological University Hyderabad', code: 'JNTUH', totalSubjects: 0, totalQuestions: 6180 },
-    ];
+    try {
+      const saved = localStorage.getItem('universities');
+      return saved ? JSON.parse(saved) : [
+        { id: 'ou', name: 'Osmania University', code: 'OU', totalSubjects: 6},
+        { id: 'jntuh', name: 'Jawaharlal Nehru Technological University Hyderabad', code: 'JNTUH', totalSubjects: 0},
+      ];
+    } catch (error) {
+      console.error('Error loading universities from localStorage:', error);
+      return [
+        { id: 'ou', name: 'Osmania University', code: 'OU', totalSubjects: 6
+
+
+         },
+        { id: 'jntuh', name: 'Jawaharlal Nehru Technological University Hyderabad', code: 'JNTUH', totalSubjects: 0},
+      ];
+    }
   });
 
   const [branches, setBranches] = useState<Branch[]>(() => {
-    const saved = localStorage.getItem('branches');
-    return saved ? JSON.parse(saved) : [
-      { id: 'ou-cse', name: 'Computer Science Engineering', code: 'CSE', universityId: 'ou', totalSubjects: 6 },
-      { id: 'ou-it', name: 'Information Technology', code: 'IT', universityId: 'ou', totalSubjects: 0 },
-    ];
+    try {
+      const saved = localStorage.getItem('branches');
+      return saved ? JSON.parse(saved) : [
+        { id: 'ou-cse', name: 'Computer Science Engineering', code: 'CSE', universityId: 'ou', totalSubjects: 6 },
+        { id: 'ou-it', name: 'Information Technology', code: 'IT', universityId: 'ou', totalSubjects: 0 },
+      ];
+    } catch (error) {
+      console.error('Error loading branches from localStorage:', error);
+      return [
+        { id: 'ou-cse', name: 'Computer Science Engineering', code: 'CSE', universityId: 'ou', totalSubjects: 6 },
+        { id: 'ou-it', name: 'Information Technology', code: 'IT', universityId: 'ou', totalSubjects: 0 },
+      ];
+    }
   });
 
   const [subjects, setSubjects] = useState<Subject[]>(() => {
-    const saved = localStorage.getItem('subjects');
-    return saved ? JSON.parse(saved) : [
-      { id: 'ou-cse-ds', name: 'Data Structures', code: 'DS', branchId: 'ou-cse', totalPdfs: 0 },
-      { id: 'ou-cse-algo', name: 'Algorithms', code: 'ALGO', branchId: 'ou-cse', totalPdfs: 0 },
-      { id: 'ou-cse-os', name: 'Operating Systems', code: 'OS', branchId: 'ou-cse', totalPdfs: 0 },
-    ];
+    try {
+      const saved = localStorage.getItem('subjects');
+      return saved ? JSON.parse(saved) : [
+        { id: 'ou-cse-ds', name: 'Data Structures', code: 'DS', branchId: 'ou-cse', totalPdfs: 0 },
+        { id: 'ou-cse-algo', name: 'Algorithms', code: 'ALGO', branchId: 'ou-cse', totalPdfs: 0 },
+        { id: 'ou-cse-os', name: 'Operating Systems', code: 'OS', branchId: 'ou-cse', totalPdfs: 0 },
+      ];
+    } catch (error) {
+      console.error('Error loading subjects from localStorage:', error);
+      return [
+        { id: 'ou-cse-ds', name: 'Data Structures', code: 'DS', branchId: 'ou-cse', totalPdfs: 0 },
+        { id: 'ou-cse-algo', name: 'Algorithms', code: 'ALGO', branchId: 'ou-cse', totalPdfs: 0 },
+        { id: 'ou-cse-os', name: 'Operating Systems', code: 'OS', branchId: 'ou-cse', totalPdfs: 0 },
+      ];
+    }
   });
   
   // PDFs now persist with base64 encoding
   const [pdfs, setPdfs] = useState<{ [subjectId: string]: PdfFile[] }>(() => {
-    const saved = localStorage.getItem('pdfs');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('pdfs');
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('Error loading PDFs from localStorage:', error);
+      return {};
+    }
   });
 
   const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
@@ -1042,6 +252,15 @@ export const SyllabusSection: React.FC = () => {
 
   // --- SEARCH STATE ---
   const [searchQuery, setSearchQuery] = useState('');
+
+  // --- LOADING STATE ---
+  const [isLoadingPdfs, setIsLoadingPdfs] = useState(false);
+  const [pdfLoadError, setPdfLoadError] = useState<string | null>(null);
+
+  // --- API CONFIGURATION ---
+    const API_BASE_URL = 'https://ai-chatbot-1-sgup.onrender.com';
+
+  // const API_BASE_URL = 'http://localhost:8000';
 
   // --- CONFIRMATION MODAL STATE ---
   const [confirmationModal, setConfirmationModal] = useState<{
@@ -1060,20 +279,128 @@ export const SyllabusSection: React.FC = () => {
 
   // --- SAVE TO LOCALSTORAGE ---
   useEffect(() => {
-    localStorage.setItem('universities', JSON.stringify(universities));
+    try {
+      localStorage.setItem('universities', JSON.stringify(universities));
+    } catch (error) {
+      console.error('Error saving universities to localStorage:', error);
+    }
   }, [universities]);
 
   useEffect(() => {
-    localStorage.setItem('branches', JSON.stringify(branches));
+    try {
+      localStorage.setItem('branches', JSON.stringify(branches));
+    } catch (error) {
+      console.error('Error saving branches to localStorage:', error);
+    }
   }, [branches]);
 
   useEffect(() => {
-    localStorage.setItem('subjects', JSON.stringify(subjects));
+    try {
+      localStorage.setItem('subjects', JSON.stringify(subjects));
+    } catch (error) {
+      console.error('Error saving subjects to localStorage:', error);
+    }
   }, [subjects]);
 
   useEffect(() => {
-    localStorage.setItem('pdfs', JSON.stringify(pdfs));
+    try {
+      localStorage.setItem('pdfs', JSON.stringify(pdfs));
+    } catch (error) {
+      console.error('Error saving PDFs to localStorage:', error);
+    }
   }, [pdfs]);
+
+  // --- API FUNCTIONS ---
+  // Fetch PDFs from API for a specific subject
+  const fetchPdfsFromAPI = async (subjectId: string): Promise<PdfFile[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/files/${subjectId}/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // if (!response.ok) {
+      //   throw new Error(`HTTP ${response.status}: Failed to fetch PDFs`);
+      // }
+
+      const data = await response.json();
+      
+      // Transform API response to match our PdfFile interface
+      return data.files?.map((file: any) => ({
+        id: file.id || `api-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: file.filename || file.name || 'Unknown File',
+        size: file.size ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown Size',
+        date: file.upload_date ? new Date(file.upload_date).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }) : new Date().toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }),
+        status: (file.status === 'processed' || file.status === 'completed') ? 'Processed' : 
+               file.status === 'processing' ? 'Processing' : 
+               file.status === 'failed' ? 'Failed' : 'Processed',
+        url: file.download_url || '#',
+        fileData: '', // We don't store base64 for API-fetched files
+        apiId: file.id,
+        errorMessage: file.error_message
+      })) || [];
+    } catch (error) {
+      console.error('Error fetching PDFs from API:', error);
+      throw error;
+    }
+  };
+
+  // Load PDFs when a subject is selected
+  useEffect(() => {
+    if (selectedSubject) {
+      const loadPdfsForSubject = async () => {
+        setIsLoadingPdfs(true);
+        setPdfLoadError(null);
+
+        try {
+          // Fetch PDFs from API
+          const apiPdfs = await fetchPdfsFromAPI(selectedSubject.id);
+          
+          // Get existing PDFs from localStorage
+          const existingPdfs = pdfs[selectedSubject.id] || [];
+          
+          // Merge API PDFs with existing ones, avoiding duplicates
+          const mergedPdfs = [...existingPdfs];
+          
+          apiPdfs.forEach(apiPdf => {
+            // Check if this PDF already exists (by name or API ID)
+            const existingPdf = existingPdfs.find(pdf => 
+              pdf.name === apiPdf.name || 
+              (pdf.apiId && pdf.apiId === apiPdf.apiId)
+            );
+            
+            if (!existingPdf) {
+              mergedPdfs.push(apiPdf);
+            }
+          });
+
+          // Update state with merged PDFs
+          setPdfs(prev => ({
+            ...prev,
+            [selectedSubject.id]: mergedPdfs
+          }));
+
+        } catch (error) {
+          console.error('Error loading PDFs for subject:', error);
+          setPdfLoadError(error instanceof Error ? error.message : 'Failed to load PDFs');
+        } finally {
+          setIsLoadingPdfs(false);
+        }
+      };
+
+      loadPdfsForSubject();
+    }
+  }, [selectedSubject?.id]); // Only trigger when subject ID changes
 
   // --- SEARCH LOGIC ---
   const filteredUniversities = useMemo(() => {
@@ -1140,7 +467,15 @@ export const SyllabusSection: React.FC = () => {
           Object.keys(newPdfs).forEach(subjectId => {
             const subject = subjects.find(s => s.id === subjectId);
             if (subject && branches.find(b => b.id === subject.branchId && b.universityId === universityId)) {
-              newPdfs[subjectId].forEach(pdf => URL.revokeObjectURL(pdf.url));
+              newPdfs[subjectId].forEach(pdf => {
+                try {
+                  if (pdf.url && pdf.url.startsWith('blob:')) {
+                    URL.revokeObjectURL(pdf.url);
+                  }
+                } catch (error) {
+                  console.error('Error revoking URL:', error);
+                }
+              });
               delete newPdfs[subjectId];
             }
           });
@@ -1171,7 +506,15 @@ export const SyllabusSection: React.FC = () => {
           Object.keys(newPdfs).forEach(subjectId => {
             const subject = subjects.find(s => s.id === subjectId && s.branchId === branchId);
             if (subject) {
-              newPdfs[subjectId].forEach(pdf => URL.revokeObjectURL(pdf.url));
+              newPdfs[subjectId].forEach(pdf => {
+                try {
+                  if (pdf.url && pdf.url.startsWith('blob:')) {
+                    URL.revokeObjectURL(pdf.url);
+                  }
+                } catch (error) {
+                  console.error('Error revoking URL:', error);
+                }
+              });
               delete newPdfs[subjectId];
             }
           });
@@ -1197,7 +540,15 @@ export const SyllabusSection: React.FC = () => {
         setPdfs(prev => {
           const newPdfs = { ...prev };
           if (newPdfs[subjectId]) {
-            newPdfs[subjectId].forEach(pdf => URL.revokeObjectURL(pdf.url));
+            newPdfs[subjectId].forEach(pdf => {
+              try {
+                if (pdf.url && pdf.url.startsWith('blob:')) {
+                  URL.revokeObjectURL(pdf.url);
+                }
+              } catch (error) {
+                console.error('Error revoking URL:', error);
+              }
+            });
             delete newPdfs[subjectId];
           }
           return newPdfs;
@@ -1220,7 +571,15 @@ export const SyllabusSection: React.FC = () => {
         setPdfs(prev => {
           const subjectPdfs = prev[subjectId] || [];
           const pdfToDelete = subjectPdfs.find(p => p.id === pdfId);
-          if (pdfToDelete) URL.revokeObjectURL(pdfToDelete.url);
+          if (pdfToDelete) {
+            try {
+              if (pdfToDelete.url && pdfToDelete.url.startsWith('blob:')) {
+                URL.revokeObjectURL(pdfToDelete.url);
+              }
+            } catch (error) {
+              console.error('Error revoking URL:', error);
+            }
+          }
           return { ...prev, [subjectId]: subjectPdfs.filter(p => p.id !== pdfId) };
         });
       },
@@ -1228,10 +587,34 @@ export const SyllabusSection: React.FC = () => {
     });
   };
 
+  // --- REFRESH PDFS FUNCTION ---
+  const handleRefreshPdfs = async () => {
+    if (!selectedSubject) return;
+
+    setIsLoadingPdfs(true);
+    setPdfLoadError(null);
+
+    try {
+      const apiPdfs = await fetchPdfsFromAPI(selectedSubject.id);
+      
+      // Replace current PDFs with fresh data from API
+      setPdfs(prev => ({
+        ...prev,
+        [selectedSubject.id]: apiPdfs
+      }));
+
+    } catch (error) {
+      console.error('Error refreshing PDFs:', error);
+      setPdfLoadError(error instanceof Error ? error.message : 'Failed to refresh PDFs');
+    } finally {
+      setIsLoadingPdfs(false);
+    }
+  };
+
   // --- ADD & UPLOAD HANDLERS ---
   const handleAddUniversity = () => {
     if (!name.trim() || !code.trim()) return;
-    setUniversities(prev => [...prev, { id: `uni-${Date.now()}`, name, code: code.toUpperCase(), totalSubjects: 0, totalQuestions: 0 }]);
+    setUniversities(prev => [...prev, { id: `uni-${Date.now()}`, name, code: code.toUpperCase(), totalSubjects: 0}]);
     setName(''); setCode(''); setShowAddUniversity(false);
   };
   
@@ -1259,29 +642,68 @@ export const SyllabusSection: React.FC = () => {
 
   // Helper function to create blob URL from base64
   const base64ToBlob = (base64: string): string => {
-    const byteCharacters = atob(base64.split(',')[1]);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    try {
+      const byteCharacters = atob(base64.split(',')[1]);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Error creating blob URL:', error);
+      return '';
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'application/pdf' });
-    return URL.createObjectURL(blob);
   };
 
+  // --- API UPLOAD FUNCTION ---
+  const uploadFileToAPI = async (file: File, pdfId: string): Promise<{ success: boolean; message?: string; apiId?: string }> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('subject_id', selectedSubject?.id || '');
+
+      const response = await fetch(`${API_BASE_URL}/upload/`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Upload failed' }));
+        throw new Error(errorData.detail || `HTTP ${response.status}: Upload failed`);
+      }
+
+      const data = await response.json();
+      return { 
+        success: true, 
+        message: data.message || 'File uploaded successfully',
+        apiId: data.file_id || data.id
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Unknown upload error occurred' 
+      };
+    }
+  };
+
+  // --- UPDATED FILE CHANGE HANDLER WITH API INTEGRATION ---
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || !selectedSubject) return;
     
     const files = Array.from(event.target.files);
     const newFiles: PdfFile[] = [];
 
+    // Create initial file entries with base64 data
     for (const file of files) {
       try {
         const base64Data = await fileToBase64(file);
         const blobUrl = base64ToBlob(base64Data);
         
         newFiles.push({
-          id: `${file.name}-${Date.now()}`,
+          id: `${file.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           name: file.name,
           size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
           date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -1294,23 +716,74 @@ export const SyllabusSection: React.FC = () => {
       }
     }
 
-    setPdfs(prev => ({ ...prev, [selectedSubject.id]: [...(prev[selectedSubject.id] || []), ...newFiles] }));
-    
-    // Simulate upload and processing
-    newFiles.forEach(pdf => {
-      setTimeout(() => {
+    // Add files to state immediately
+    setPdfs(prev => ({ 
+      ...prev, 
+      [selectedSubject.id]: [...(prev[selectedSubject.id] || []), ...newFiles] 
+    }));
+
+    // Upload each file to the API
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const pdfFile = newFiles[i];
+      
+      try {
+        // Update status to Processing
         setPdfs(prev => {
           if (!prev[selectedSubject.id]) return prev;
-          return { ...prev, [selectedSubject.id]: prev[selectedSubject.id].map(p => p.id === pdf.id ? { ...p, status: 'Processing' } : p) };
+          return {
+            ...prev,
+            [selectedSubject.id]: prev[selectedSubject.id].map(p => 
+              p.id === pdfFile.id ? { ...p, status: 'Processing' } : p
+            )
+          };
         });
-        setTimeout(() => {
-          setPdfs(prev => {
-            if (!prev[selectedSubject.id]) return prev;
-            return { ...prev, [selectedSubject.id]: prev[selectedSubject.id].map(p => p.id === pdf.id ? { ...p, status: 'Processed' } : p) };
-          });
-        }, 3000);
-      }, 2000);
-    });
+
+        // Upload to API
+        const uploadResult = await uploadFileToAPI(file, pdfFile.id);
+
+        // Update status based on upload result
+        setPdfs(prev => {
+          if (!prev[selectedSubject.id]) return prev;
+          return {
+            ...prev,
+            [selectedSubject.id]: prev[selectedSubject.id].map(p => 
+              p.id === pdfFile.id 
+                ? { 
+                    ...p, 
+                    status: uploadResult.success ? 'Processed' : 'Failed',
+                    errorMessage: uploadResult.success ? undefined : uploadResult.message,
+                    apiId: uploadResult.apiId
+                  } 
+                : p
+            )
+          };
+        });
+
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error);
+        
+        // Update status to Failed
+        setPdfs(prev => {
+          if (!prev[selectedSubject.id]) return prev;
+          return {
+            ...prev,
+            [selectedSubject.id]: prev[selectedSubject.id].map(p => 
+              p.id === pdfFile.id 
+                ? { 
+                    ...p, 
+                    status: 'Failed',
+                    errorMessage: error instanceof Error ? error.message : 'Upload failed'
+                  } 
+                : p
+            )
+          };
+        });
+      }
+    }
+
+    // Reset the file input
+    event.target.value = '';
   };
 
   // --- HELPER & EFFECT HOOKS ---
@@ -1338,19 +811,31 @@ export const SyllabusSection: React.FC = () => {
 
   // Restore blob URLs from base64 data on component mount
   useEffect(() => {
-    const restoredPdfs = { ...pdfs };
-    Object.keys(restoredPdfs).forEach(subjectId => {
-      restoredPdfs[subjectId] = restoredPdfs[subjectId].map(pdf => ({
-        ...pdf,
-        url: pdf.fileData ? base64ToBlob(pdf.fileData) : pdf.url
-      }));
-    });
-    setPdfs(restoredPdfs);
+    try {
+      const restoredPdfs = { ...pdfs };
+      Object.keys(restoredPdfs).forEach(subjectId => {
+        restoredPdfs[subjectId] = restoredPdfs[subjectId].map(pdf => ({
+          ...pdf,
+          url: pdf.fileData ? base64ToBlob(pdf.fileData) : pdf.url
+        }));
+      });
+      setPdfs(restoredPdfs);
+    } catch (error) {
+      console.error('Error restoring PDFs:', error);
+    }
   }, []);
   
   useEffect(() => { 
     return () => { 
-      Object.values(pdfs).flat().forEach(pdf => URL.revokeObjectURL(pdf.url)); 
+      try {
+        Object.values(pdfs).flat().forEach(pdf => {
+          if (pdf.url && pdf.url.startsWith('blob:')) {
+            URL.revokeObjectURL(pdf.url);
+          }
+        });
+      } catch (error) {
+        console.error('Error cleaning up URLs:', error);
+      }
     }; 
   }, [pdfs]);
 
@@ -1396,7 +881,7 @@ export const SyllabusSection: React.FC = () => {
                 <div className="flex justify-around w-full text-center">
                   <div><p className="text-xl font-bold text-gray-800">{u_branches.length}</p><p className="text-xs text-gray-500">Branches</p></div>
                   <div><p className="text-xl font-bold text-gray-800">{u.totalSubjects}</p><p className="text-xs text-gray-500">Subjects</p></div>
-                  <div><p className="text-xl font-bold text-gray-800">{u.totalQuestions.toLocaleString()}</p><p className="text-xs text-gray-500">Questions</p></div>
+                  {/* <div><p className="text-xl font-bold text-gray-800">{u.totalQuestions.toLocaleString()}</p><p className="text-xs text-gray-500">Questions</p></div> */}
                 </div>
               </div>
             </div>
@@ -1467,10 +952,10 @@ export const SyllabusSection: React.FC = () => {
             <div className="p-3 rounded-lg bg-indigo-100"><BookCopy size={24} className="text-indigo-600" /></div>
             <div><p className="text-2xl font-bold text-gray-800">{universitySubjects.length}</p><p className="text-sm text-gray-500">Total Subjects</p></div>
           </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
+          {/* <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
             <div className="p-3 rounded-lg bg-green-100"><BrainCircuit size={24} className="text-green-600" /></div>
             <div><p className="text-2xl font-bold text-gray-800">{selectedUniversity?.totalQuestions.toLocaleString()}</p><p className="text-sm text-gray-500">Total Questions</p></div>
-          </div>
+          </div> */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-center gap-4">
             <div className="p-3 rounded-lg bg-orange-100"><FileText size={24} className="text-orange-600" /></div>
             <div><p className="text-2xl font-bold text-gray-800">{totalPdfs}</p><p className="text-sm text-gray-500">Total PDFs</p></div>
@@ -1631,11 +1116,13 @@ export const SyllabusSection: React.FC = () => {
   const renderPdfUploader = () => {
     if (!selectedSubject) return null;
     const subjectPdfs = pdfs[selectedSubject.id] || [];
+    
     const StatusTag: React.FC<{ status: PdfFile['status'] }> = ({ status }) => { 
       const styles = { 
         Uploading: 'bg-blue-100 text-blue-800', 
         Processing: 'bg-yellow-100 text-yellow-800', 
-        Processed: 'bg-green-100 text-green-800' 
+        Processed: 'bg-green-100 text-green-800',
+        Failed: 'bg-red-100 text-red-800'
       }; 
       return <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${styles[status]}`}>{status}</span>; 
     };
@@ -1648,10 +1135,46 @@ export const SyllabusSection: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800">Upload PDF Documents</h1>
             <p className="mt-1 text-gray-600">Subject: {selectedSubject.name} ({selectedSubject.code})</p>
           </div>
-          <button onClick={() => handleNavigation(() => setSelectedSubject(null))} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-            <ArrowLeft size={16} /> Back to Subjects
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleRefreshPdfs}
+              disabled={isLoadingPdfs}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={isLoadingPdfs ? 'animate-spin' : ''} /> 
+              {isLoadingPdfs ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button onClick={() => handleNavigation(() => setSelectedSubject(null))} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              <ArrowLeft size={16} /> Back to Subjects
+            </button>
+          </div>
         </div>
+
+        {/* Loading/Error States */}
+        {isLoadingPdfs && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <RefreshCw size={20} className="text-blue-600 animate-spin" />
+              <div>
+                <h4 className="text-sm font-medium text-blue-900">Loading PDFs...</h4>
+                <p className="text-xs text-blue-700">Fetching documents from the server</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {pdfLoadError && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle size={20} className="text-red-600" />
+              <div>
+                <h4 className="text-sm font-medium text-red-900">Error Loading PDFs</h4>
+                <p className="text-xs text-red-700">{pdfLoadError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white p-4 rounded-xl border border-gray-200">
@@ -1664,6 +1187,19 @@ export const SyllabusSection: React.FC = () => {
                 <span className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Choose Files</span>
                 <input id="file-upload" type="file" multiple accept=".pdf" className="hidden" onChange={handleFileChange} />
               </label>
+            </div>
+
+            {/* API Status Indicator */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <BrainCircuit size={20} className="text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-blue-900">API Integration Active</h4>
+                  <p className="text-xs text-blue-700">Files will be uploaded to FAISS processing system at {API_BASE_URL}</p>
+                </div>
+              </div>
             </div>
 
             {/* Search Input for PDFs */}
@@ -1692,10 +1228,15 @@ export const SyllabusSection: React.FC = () => {
                     <div className="flex-grow min-w-0">
                       <p className="font-medium text-sm text-gray-800 truncate" title={file.name}>{file.name}</p>
                       <p className="text-xs text-gray-500">{file.size} • {file.date}</p>
+                      {file.status === 'Failed' && file.errorMessage && (
+                        <p className="text-xs text-red-600 mt-1" title={file.errorMessage}>
+                          Error: {file.errorMessage.length > 50 ? `${file.errorMessage.substring(0, 50)}...` : file.errorMessage}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 flex-shrink-0">
                       <StatusTag status={file.status} />
-                      {file.status === 'Processed' && (
+                      {file.status === 'Processed' && file.url && file.url !== '#' && (
                         <a href={file.url} download={file.name} className="text-sm font-medium text-blue-600 hover:underline">
                           Download
                         </a>
@@ -1729,10 +1270,21 @@ export const SyllabusSection: React.FC = () => {
               <ul className="list-disc list-inside text-gray-600 space-y-2.5 text-sm marker:text-gray-400">
                 <li>Maximum file size: <strong>50MB per PDF</strong></li>
                 <li>Supported format: <strong>PDF only</strong></li>
-                <li>Multiple files can be uploaded</li>
-                <li>Files will be processed automatically</li>
-                <li>Files are saved permanently and will persist after page refresh</li>
+                <li>Multiple files can be uploaded simultaneously</li>
+                <li>Files are processed via FAISS API integration</li>
+                <li>Upload status shows real-time API responses</li>
+                <li>Failed uploads can be retried by re-uploading</li>
+                <li>Files are saved locally and persist after page refresh</li>
+                <li>Click "Refresh" to sync with server data</li>
               </ul>
+              
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-medium text-gray-800 mb-2">API Status</h4>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Connected to {API_BASE_URL}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

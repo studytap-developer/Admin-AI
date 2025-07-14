@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Users, BookOpen, ArrowRight, GraduationCap, FileText, TrendingUp } from 'lucide-react';
 import type { Screen } from '../types';
 
@@ -6,29 +7,67 @@ interface DashboardHomeProps {
   onNavigate: (screen: Screen) => void;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  is_subscribed: boolean;
+}
+
+
+
 export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('https://ai-chatbot-1-sgup.onrender.com/users')
+      .then(response => response.json())
+      .then(data => {
+        setUsers(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Failed to fetch users:', error);
+        setLoading(false);
+      });
+  }, []);
+
+  const totalUsers = users.length;
+  const activeSubscriptions = users.filter(user => user.is_subscribed).length;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-3">Welcome to StudyTap AI Dashboard</h1>
         <p className="text-xl text-gray-600">Manage your AI-powered educational platform efficiently</p>
       </div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-600 text-sm font-semibold uppercase tracking-wide">Total Users</p>
-              <p className="text-3xl font-bold text-blue-900 mt-1">2,847</p>
-              <p className="text-blue-700 text-sm mt-1">+12% this month</p>
+              <p className="text-3xl font-bold text-blue-900 mt-1">{loading ? 'Loading...' : totalUsers}</p>
             </div>
             <Users className="w-10 h-10 text-blue-600" />
           </div>
         </div>
-        
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-6 border border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-6 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-600 text-sm font-semibold uppercase tracking-wide">Active Subscriptions</p>
+              <p className="text-3xl font-bold text-green-900 mt-1">{loading ? 'Loading...' : activeSubscriptions}</p>
+              <p className="text-green-700 text-sm mt-1">Live</p>
+            </div>
+            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-6 border border-purple-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-600 text-sm font-semibold uppercase tracking-wide">Total Questions</p>
@@ -37,22 +76,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </div>
             <FileText className="w-10 h-10 text-purple-600" />
           </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-6 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-600 text-sm font-semibold uppercase tracking-wide">Active Sessions</p>
-              <p className="text-3xl font-bold text-green-900 mt-1">1,234</p>
-              <p className="text-green-700 text-sm mt-1">Live now</p>
-            </div>
-            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        </div>
+        </div> */}
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
+        {/* <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-600 text-sm font-semibold uppercase tracking-wide">PDF Documents</p>
@@ -61,10 +87,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </div>
             <BookOpen className="w-10 h-10 text-orange-600" />
           </div>
-        </div>
+        </div> */}
       </div>
 
-      {/* Main Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <button
           onClick={() => onNavigate('users')}
@@ -98,7 +123,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Syllabus Management</h3>
               <p className="text-gray-600 mb-6 text-lg leading-relaxed">
-                Access university syllabi, manage course content across 14 branches, organize subjects, and upload PDF materials for AI training.
+                Access university syllabi, manage course content across branches, organize subjects, and upload PDF materials for AI training.
               </p>
               <div className="flex items-center text-purple-600 font-semibold text-lg">
                 <span>Manage Syllabus</span>
@@ -109,7 +134,6 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
         </button>
       </div>
 
-      {/* Recent Activity */}
       <div className="mt-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
         <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">

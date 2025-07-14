@@ -1,3 +1,5 @@
+
+
 // import React, { useState } from 'react';
 // import { LoginPage } from './components/LoginPage';
 // import { Navbar } from './components/Navbar';
@@ -13,6 +15,11 @@
 
 //   const handleLogin = () => {
 //     setIsLoggedIn(true);
+//     setCurrentScreen('dashboard');
+//   };
+
+//   const handleLogout = () => {
+//     setIsLoggedIn(false);
 //     setCurrentScreen('dashboard');
 //   };
 
@@ -39,7 +46,8 @@
 //     <div className="min-h-screen bg-gray-50">
 //       <Navbar 
 //         searchQuery={searchQuery} 
-//         onSearchChange={setSearchQuery} 
+//         onSearchChange={setSearchQuery}
+//         onLogout={handleLogout}
 //       />
 //       <div className="flex">
 //         {/* Sidebar Navigation */}
@@ -101,7 +109,8 @@
 
 
 
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { Navbar } from './components/Navbar';
 import { DashboardHome } from './components/DashboardHome';
@@ -114,13 +123,23 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ✅ Load login state on initial render
+  useEffect(() => {
+    const storedLogin = localStorage.getItem('isLoggedIn');
+    if (storedLogin === 'true') {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const handleLogin = () => {
     setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');  // ✅ persist login state
     setCurrentScreen('dashboard');
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');  // ✅ clear on logout
     setCurrentScreen('dashboard');
   };
 
@@ -151,7 +170,7 @@ function App() {
         onLogout={handleLogout}
       />
       <div className="flex">
-        {/* Sidebar Navigation */}
+        {/* Sidebar */}
         <div className="w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen sticky top-16">
           <div className="p-6">
             <nav className="space-y-2">
@@ -166,7 +185,6 @@ function App() {
                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                 Dashboard
               </button>
-              
               <button
                 onClick={() => handleNavigate('users')}
                 className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-200 ${
@@ -178,7 +196,6 @@ function App() {
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 Users
               </button>
-              
               <button
                 onClick={() => handleNavigate('syllabus')}
                 className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-200 ${
@@ -194,10 +211,7 @@ function App() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1">
-          {renderCurrentScreen()}
-        </div>
+        <div className="flex-1">{renderCurrentScreen()}</div>
       </div>
     </div>
   );
