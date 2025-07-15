@@ -844,7 +844,7 @@ export const SyllabusSection: React.FC = () => {
     <div>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Syllabus Management</h1>
-        <p className="text-gray-600 mb-8">Select a university to manage branches, subjects, and PDF documents</p>
+        <p className="text-gray-600 mb-8">Select a university to manage branches, subjects, and PDF documents.</p>
         
         {/* Centered Search Bar */}
         <div className="mb-8">
