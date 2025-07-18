@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Users, BookOpen, ArrowRight, GraduationCap, FileText, TrendingUp } from 'lucide-react';
 import type { Screen } from '../types';
 
+
 interface DashboardHomeProps {
   onNavigate: (screen: Screen) => void;
 }
@@ -32,6 +33,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
         setLoading(false);
       });
   }, []);
+
+
+
 
   const totalUsers = users.length;
   const activeSubscriptions = users.filter(user => user.is_subscribed).length;
@@ -67,27 +71,6 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-6 border border-purple-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-600 text-sm font-semibold uppercase tracking-wide">Total Questions</p>
-              <p className="text-3xl font-bold text-purple-900 mt-1">15,632</p>
-              <p className="text-purple-700 text-sm mt-1">+8% this week</p>
-            </div>
-            <FileText className="w-10 h-10 text-purple-600" />
-          </div>
-        </div> */}
-
-        {/* <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-600 text-sm font-semibold uppercase tracking-wide">PDF Documents</p>
-              <p className="text-3xl font-bold text-orange-900 mt-1">4,521</p>
-              <p className="text-orange-700 text-sm mt-1">Across all subjects</p>
-            </div>
-            <BookOpen className="w-10 h-10 text-orange-600" />
-          </div>
-        </div> */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
